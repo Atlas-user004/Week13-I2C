@@ -55,6 +55,16 @@ uint8_t eepromDataReadBack[4];
 uint8_t IOExpdrDataReadBack;
 uint8_t IOExpdrDataWrite = 0b01010101;
 
+uint32_t TimeStamp = 0;
+uint8_t B1_Button = 0;
+uint8_t B1_Button_state[2] = {0}; // [Last, Now]
+
+uint8_t S1_input = 0;
+uint8_t S2_input = 0;
+uint8_t S3_input = 0;
+uint8_t S4_input = 0;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,12 +124,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1) {
-		EEPROMWriteExample();
-		EEPROMReadExample(eepromDataReadBack, 4);
-
-		IOExpenderReadPinA(&IOExpdrDataReadBack);
-		IOExpenderWritePinB(IOExpdrDataWrite);
+	while (1)
+	{
+		if(HAL_GetTick() - TimeStamp > 100)
+		{
+			B1_Button = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); // Receive input from B1 button.
+			B1_Button_state[1] = B1_Button;
+			if(B1_Button_state[1] == 1 && B1_Button_state[0] == 0)
+			{
+				IOExpdrExampleReadFlag = 1;
+				IOExpenderReadPinA(&IOExpdrDataReadBack);
+				HAL_Delay(50);
+				IOExpdrDataWrite = IOExpdrDataReadBack;
+				IOExpdrExampleWriteFlag = 1;
+				IOExpenderWritePinB(IOExpdrDataWrite);
+			}
+			else
+			{
+				IOExpdrExampleReadFlag = 0;
+				IOExpdrExampleWriteFlag = 0;
+			}
+		}
+		//EEPROMWriteExample();
+		//EEPROMReadExample(eepromDataReadBack, 4);
+		B1_Button_state[0] = B1_Button_state[1];
 
     /* USER CODE END WHILE */
 
@@ -310,7 +338,7 @@ void IOExpenderReadPinA(uint8_t *Rdata) {
 }
 void IOExpenderWritePinB(uint8_t Wdata) {
 	if (IOExpdrExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
-		static uint8_t data;
+		static uint8_t data; // data is not change while it has new Wdata.
 		data = Wdata;
 		HAL_I2C_Mem_Write_IT(&hi2c1, IOEXPD_ADDR, 0x15, I2C_MEMADD_SIZE_8BIT,
 				&data, 1);
