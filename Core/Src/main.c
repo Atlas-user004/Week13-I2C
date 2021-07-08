@@ -57,7 +57,7 @@ uint8_t IOExpdrDataWrite = 0b01010101;
 
 uint32_t TimeStamp = 0;
 uint8_t B1_Button = 1;
-uint8_t B1_Button_state[2] = {1}; // [Last, Now]
+uint8_t B1_Button_state[2] = {1}; // [Last, Now] = [1,1]
 
 uint8_t S1_input = 0;
 uint8_t S2_input = 0;
@@ -132,17 +132,11 @@ int main(void)
 			TimeStamp = HAL_GetTick();
 			B1_Button = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); // Receive input from B1 button.
 			B1_Button_state[1] = B1_Button;
-			if(B1_Button_state[1] == 1 && B1_Button_state[0] == 0)
+			if(B1_Button_state[1] == 0 && B1_Button_state[0] == 1)
 			{
 				IOExpdrExampleReadFlag = 1;
 				IOExpenderReadPinA(&IOExpdrDataReadBack);
 				HAL_Delay(10);
-				//eepromExampleWriteFlag = 1;
-				//EEPROMWriteExample(IOExpdrDataReadBack);
-				//HAL_Delay(10);
-				//eepromExampleReadFlag = 1;
-				//EEPROMReadExample(eepromDataReadBack, 1);
-				//HAL_Delay(10);
 				IOExpdrDataWrite = IOExpdrDataReadBack;
 				IOExpdrExampleWriteFlag = 1;
 				IOExpenderWritePinB(IOExpdrDataWrite);
@@ -159,8 +153,14 @@ int main(void)
 				IOExpdrExampleWriteFlag = 0;
 				eepromExampleReadFlag = 0;
 				IOExpdrExampleWriteFlag = 0;
+
 			}
 			B1_Button_state[0] = B1_Button_state[1];
+			eepromExampleReadFlag = 1;
+			EEPROMReadExample(eepromDataReadBack, 1);
+			HAL_Delay(10);
+			IOExpdrExampleWriteFlag = 1;
+			IOExpenderWritePinB(eepromDataReadBack[0]);
 		}
 
     /* USER CODE END WHILE */
