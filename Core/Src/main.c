@@ -56,8 +56,8 @@ uint8_t IOExpdrDataReadBack;
 uint8_t IOExpdrDataWrite = 0b01010101;
 
 uint32_t TimeStamp = 0;
-uint8_t B1_Button = 0;
-uint8_t B1_Button_state[2] = {0}; // [Last, Now]
+uint8_t B1_Button = 1;
+uint8_t B1_Button_state[2] = {1}; // [Last, Now]
 
 uint8_t S1_input = 0;
 uint8_t S2_input = 0;
@@ -73,7 +73,8 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-void EEPROMWriteExample();
+void EEPROMWriteExample(uint8_t Wdata);
+//void EEPROMWriteExample();
 void EEPROMReadExample(uint8_t *Rdata, uint16_t len);
 
 void IOExpenderInit();
@@ -128,26 +129,39 @@ int main(void)
 	{
 		if(HAL_GetTick() - TimeStamp > 100)
 		{
+			TimeStamp = HAL_GetTick();
 			B1_Button = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); // Receive input from B1 button.
 			B1_Button_state[1] = B1_Button;
 			if(B1_Button_state[1] == 1 && B1_Button_state[0] == 0)
 			{
 				IOExpdrExampleReadFlag = 1;
 				IOExpenderReadPinA(&IOExpdrDataReadBack);
-				HAL_Delay(50);
+				HAL_Delay(10);
+				//eepromExampleWriteFlag = 1;
+				//EEPROMWriteExample(IOExpdrDataReadBack);
+				//HAL_Delay(10);
+				//eepromExampleReadFlag = 1;
+				//EEPROMReadExample(eepromDataReadBack, 1);
+				//HAL_Delay(10);
 				IOExpdrDataWrite = IOExpdrDataReadBack;
 				IOExpdrExampleWriteFlag = 1;
 				IOExpenderWritePinB(IOExpdrDataWrite);
+				HAL_Delay(10);
+				eepromExampleWriteFlag = 1;
+				EEPROMWriteExample(IOExpdrDataReadBack);
+				HAL_Delay(10);
+				eepromExampleReadFlag = 1;
+				EEPROMReadExample(eepromDataReadBack, 1);
 			}
 			else
 			{
 				IOExpdrExampleReadFlag = 0;
 				IOExpdrExampleWriteFlag = 0;
+				eepromExampleReadFlag = 0;
+				IOExpdrExampleWriteFlag = 0;
 			}
+			B1_Button_state[0] = B1_Button_state[1];
 		}
-		//EEPROMWriteExample();
-		//EEPROMReadExample(eepromDataReadBack, 4);
-		B1_Button_state[0] = B1_Button_state[1];
 
     /* USER CODE END WHILE */
 
@@ -301,23 +315,28 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void EEPROMWriteExample() {
+//void EEPROMWriteExample() {
+//	if (eepromExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
+//
+//		static uint8_t data[4] = { 0xff, 0x00, 0x55, 0xaa };
+//		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
+//				data, 4);
+//
+//		eepromExampleWriteFlag = 0;
+//	}
+//}
+void EEPROMWriteExample(uint8_t Wdata) {
 	if (eepromExampleWriteFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
-		static uint8_t data[4] = { 0xff, 0x00, 0x55, 0xaa };
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT,
-				data, 4);
-
-
-
+		static uint8_t data[0] = {Wdata};
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT, data, 1);
 		eepromExampleWriteFlag = 0;
 	}
 }
 void EEPROMReadExample(uint8_t *Rdata, uint16_t len) {
 	if (eepromExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY) {
 
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2c, I2C_MEMADD_SIZE_16BIT,
-				Rdata, len);
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2c, I2C_MEMADD_SIZE_16BIT, Rdata, len);
 		eepromExampleReadFlag = 0;
 	}
 }
