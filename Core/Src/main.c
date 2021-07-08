@@ -123,27 +123,25 @@ int main(void)
 		if(HAL_GetTick() - TimeStamp > 100)
 		{
 			TimeStamp = HAL_GetTick();
-			B1_Button = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); // Receive input from B1 button.
+			B1_Button = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 			B1_Button_state[1] = B1_Button;
 			if(B1_Button_state[1] == 1 && B1_Button_state[0] == 0)
 			{
-				IOExpdrExampleReadFlag = 1;
+				IOExpdrExampleReadFlag = 1; // Read Button
 				IOExpenderRead(&IOExpdrDataReadBack);
 				HAL_Delay(10);
-				IOExpdrDataWrite = IOExpdrDataReadBack;
-				IOExpdrExampleWriteFlag = 1;
-				IOExpenderWrite(IOExpdrDataWrite);
-				HAL_Delay(10);
-				eepromExampleWriteFlag = 1;
+				eepromExampleWriteFlag = 1; // Write button into EEPROM
 				EEPROMWrite(IOExpdrDataReadBack);
 				HAL_Delay(10);
-				eepromExampleReadFlag = 1;
-				EEPROMRead(eepromDataReadBack, 1);
+				IOExpdrDataWrite = IOExpdrDataReadBack;
+				IOExpdrExampleWriteFlag = 1; // Write button(Show output to LED)
+				IOExpenderWrite(IOExpdrDataWrite);
+				HAL_Delay(10);
 			}
-			eepromExampleReadFlag = 1;
+			eepromExampleReadFlag = 1; // Read Button from EEPROM
 			EEPROMRead(eepromDataReadBack, 1);
 			HAL_Delay(10);
-			IOExpdrExampleWriteFlag = 1;
+			IOExpdrExampleWriteFlag = 1; // Write button(Show output to LED)
 			IOExpenderWrite(eepromDataReadBack[0]);
 			B1_Button_state[0] = B1_Button_state[1];
 		}
@@ -304,14 +302,14 @@ void EEPROMWrite(uint8_t WriteEEPROMdata) {
 	{
 		static uint8_t data[1];
 		data[0] = WriteEEPROMdata;
-		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x2C, I2C_MEMADD_SIZE_16BIT, data, 1);
+		HAL_I2C_Mem_Write_IT(&hi2c1, EEPROM_ADDR, 0x05, I2C_MEMADD_SIZE_16BIT, data, 1);
 		eepromExampleWriteFlag = 0;
 	}
 }
 void EEPROMRead(uint8_t *ReadEEPROMData, uint16_t len) {
 	if (eepromExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY)
 	{
-		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x2c, I2C_MEMADD_SIZE_16BIT, ReadEEPROMData, len);
+		HAL_I2C_Mem_Read_IT(&hi2c1, EEPROM_ADDR, 0x05, I2C_MEMADD_SIZE_16BIT, ReadEEPROMData, len);
 		eepromExampleReadFlag = 0;
 	}
 }
