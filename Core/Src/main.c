@@ -32,8 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define EEPROM_ADDR 0b10100000 // Address of EEPROM that left shift. EEPROM is memory storage that can save data while it has no power source.
-#define IOEXPD_ADDR 0b01000000 // Address of IOEXPD that left shift
+#define EEPROM_ADDR 0b10100000
+#define IOEXPD_ADDR 0b01000000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,9 +55,10 @@ uint8_t eepromDataReadBack[1];
 uint8_t IOExpdrDataReadBack;
 uint8_t IOExpdrDataWrite;
 
-uint32_t TimeStamp = 0;
 uint8_t B1_Button = 1;
 uint8_t B1_Button_state[2] = {1};
+
+uint32_t TimeStamp = 0;
 
 /* USER CODE END PV */
 
@@ -324,7 +325,7 @@ void IOExpenderRead(uint8_t *ReadIOEData) {
 	if (IOExpdrExampleReadFlag && hi2c1.State == HAL_I2C_STATE_READY)
 	{
 		HAL_I2C_Mem_Read_IT(&hi2c1, IOEXPD_ADDR, 0x12, I2C_MEMADD_SIZE_8BIT, ReadIOEData, 1);
-		IOExpdrExampleReadFlag =0;
+		IOExpdrExampleReadFlag = 0;
 	}
 }
 void IOExpenderWrite(uint8_t WriteIOEdata) {
@@ -333,7 +334,7 @@ void IOExpenderWrite(uint8_t WriteIOEdata) {
 		static uint8_t data; // data is not change while it has new Wdata.
 		data = WriteIOEdata;
 		HAL_I2C_Mem_Write_IT(&hi2c1, IOEXPD_ADDR, 0x15, I2C_MEMADD_SIZE_8BIT, &data, 1);
-		IOExpdrExampleWriteFlag=0;
+		IOExpdrExampleWriteFlag = 0;
 	}
 }
 /* USER CODE END 4 */
